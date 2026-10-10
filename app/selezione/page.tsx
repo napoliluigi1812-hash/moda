@@ -17,3 +17,4 @@ export default async function Selezione({
   const selezione = Object.keys(filtri).length ? filtri : FILTRI_PREDEFINITI;
   return <Catalogo filtri={selezione} key={JSON.stringify(selezione)} />;
 }
+
