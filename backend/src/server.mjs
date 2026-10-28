@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { getCapi } from "./catalog.mjs";
+import { getCatalogo } from "./catalog.mjs";
 
 const defaultOrigins = [
   "http://localhost:3000",
@@ -9,7 +9,7 @@ const defaultOrigins = [
 function readFilters(searchParams) {
   const filters = {};
 
-  for (const key of ["sesso", "stile", "occasione", "budget"]) {
+  for (const key of ["sesso", "stile", "occasione", "budget", "categoria"]) {
     const value = searchParams.get(key);
     if (value === null) continue;
 
@@ -26,7 +26,6 @@ function readFilters(searchParams) {
   if (filters.budget && !Object.hasOwn({ basso: true, medio: true, alto: true }, filters.budget)) {
     return { error: 'Il filtro "budget" deve essere "basso", "medio" oppure "alto".' };
   }
-
   return { filters };
 }
 
@@ -42,6 +41,7 @@ function sendJson(response, status, payload, headers = {}) {
 export function createAppServer({
   allowedOrigins = process.env.CORS_ORIGINS?.split(",").map((origin) => origin.trim()) ??
     defaultOrigins,
+  databasePath = process.env.DATABASE_PATH,
 } = {}) {
   return createServer((request, response) => {
     const origin = request.headers.origin;
@@ -71,7 +71,7 @@ export function createAppServer({
       sendJson(
         response,
         200,
-        { status: "ok", service: "moda-api", dataSource: "mock" },
+        { status: "ok", service: "moda-api", dataSource: "sqlite" },
         corsHeaders,
       );
       return;
@@ -84,11 +84,23 @@ export function createAppServer({
         return;
       }
 
-      const results = getCapi(parsed.filters);
+      let results;
+      try {
+        results = getCatalogo(parsed.filters, databasePath);
+      } catch {
+        sendJson(response, 503, { error: "Il catalogo SQLite non è disponibile." }, corsHeaders);
+        return;
+      }
+
       sendJson(
         response,
         200,
-        { capi: results, totale: results.length, filtri: parsed.filters },
+        {
+          capi: results.capi,
+          categorie: results.categorie,
+          totale: results.capi.length,
+          filtri: parsed.filters,
+        },
         corsHeaders,
       );
       return;

@@ -6,12 +6,14 @@
     "dev": "next dev",
     "dev:fe": "next dev",
     "dev:be": "npm --prefix backend run dev",
+    "import:db": "node importa-db.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test:be": "npm --prefix backend test"
   },
   "dependencies": {
+    "better-sqlite3": "^13.0.3",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8"

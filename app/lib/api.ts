@@ -3,6 +3,7 @@ export type FiltriCapi = {
   stile?: string;
   occasione?: string;
   budget?: string;
+  categoria?: string;
 };
 
 export type Capo = {
@@ -13,15 +14,28 @@ export type Capo = {
   stili: string[];
   occasioni: string[];
   prezzo: number;
-  colore: string;
-  descrizione: string;
   immagine: string;
 };
 
 export type RispostaCapi = {
   capi: Capo[];
+  categorie: string[];
   totale: number;
   filtri: FiltriCapi;
+};
+
+const STILI_API: Record<string, string> = {
+  Elegante: "Elegant",
+  Classico: "Classic",
+  Sportivo: "Sporty",
+};
+
+const OCCASIONI_API: Record<string, string> = {
+  Lavoro: "Work",
+  Serata: "Evening",
+  Cerimonia: "Ceremony",
+  "Tempo libero": "Leisure",
+  Viaggio: "Travel",
 };
 
 function isCapo(value: unknown): value is Capo {
@@ -38,8 +52,6 @@ function isCapo(value: unknown): value is Capo {
     Array.isArray(capo.occasioni) &&
     capo.occasioni.every((occasione) => typeof occasione === "string") &&
     typeof capo.prezzo === "number" &&
-    typeof capo.colore === "string" &&
-    typeof capo.descrizione === "string" &&
     typeof capo.immagine === "string"
   );
 }
@@ -50,6 +62,8 @@ function isRispostaCapi(value: unknown): value is RispostaCapi {
   return (
     Array.isArray(risposta.capi) &&
     risposta.capi.every(isCapo) &&
+    Array.isArray(risposta.categorie) &&
+    risposta.categorie.every((categoria) => typeof categoria === "string") &&
     typeof risposta.totale === "number" &&
     Boolean(risposta.filtri) &&
     typeof risposta.filtri === "object"
@@ -62,7 +76,13 @@ export async function fetchCapi(
 ): Promise<RispostaCapi> {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filtri)) {
-    if (value) query.set(key, value);
+    if (!value) continue;
+    const apiValue = key === "stile"
+      ? STILI_API[value] ?? value
+      : key === "occasione"
+        ? OCCASIONI_API[value] ?? value
+        : value;
+    query.set(key, apiValue);
   }
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(

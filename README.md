@@ -1,11 +1,21 @@
 # Atelier — FE e BE
 
-Il progetto è diviso in due applicazioni indipendenti:
+Il progetto è diviso in due applicazioni:
 
 - `app/` e `public/`: interfaccia Next.js.
-- `backend/`: API REST Node.js e catalogo mock locale.
+- `backend/`: API REST Node.js collegata al database SQLite `negozio.db`.
 
-L’interfaccia legge i capi dall’API tramite `GET /api/capi`. Il catalogo è filtrabile con `sesso`, `stile`, `occasione` e `budget`; `GET /api/health` verifica lo stato del servizio. L’endpoint restituisce `{ capi, totale, filtri }` e non dipende da servizi esterni. Il modulo `backend/src/catalog.mjs` è il punto da sostituire quando collegheremo la persistenza reale e l’ingestion schedulata.
+L’interfaccia legge i capi dall’API tramite `GET /api/capi`, che restituisce `{ capi, totale, filtri }`. L’API filtra per sesso e prezzo numerico; gli stili e le occasioni dell’interfaccia vengono associati agli stili e alle categorie presenti nel database. Le cartelle sorgente contengono immagini ma non prezzi, quindi l’import assegna per ora il prezzo placeholder di `49.99 €` a ogni capo: le fasce media e alta richiedono prezzi reali nel database per restituire risultati.
+
+## Importazione dei capi
+
+Le immagini sorgente vengono lette da `~/Desktop/negozio.db` per impostazione predefinita, copiate in `public/capi/` e collegate alle righe SQLite tramite URL pubblici. Per importare o aggiornare il catalogo:
+
+```bash
+npm run import:db
+```
+
+Configura `IMAGE_SOURCE_DIR` se la cartella immagini si trova altrove. `DATABASE_PATH` permette di cambiare il percorso del database; il valore predefinito è `negozio.db` nella root del progetto.
 
 ## Avvio in locale
 
