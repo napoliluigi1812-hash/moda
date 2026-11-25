@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-const STILI = ["Elegante", "Minimal", "Casual", "Chic", "Streetwear", "Classico", "Sportivo"];
+const STILI = ["Elegante", "Minimal", "Casual", "Sportivo"];
 const OCCASIONI = ["Lavoro", "Serata", "Cerimonia", "Tempo libero", "Viaggio"];
 const BUDGET = [
   { valore: "basso", titolo: "Fino a 100 €", dettaglio: "Piccoli investimenti" },
@@ -88,22 +88,19 @@ export default function Home() {
             <section className="preference-step">
               <div className="step-label"><span>01</span><h3>Per chi stai cercando?</h3></div>
               <div className="option-row">
-                {["Donna", "Uomo"].map((opzione) => (
-                  <button
-                    aria-pressed={sesso === opzione}
-                    className={`choice-button ${sesso === opzione ? "is-selected" : ""}`}
-                    key={opzione}
-                    onClick={() => {
-                      setSesso(opzione);
-                      setStile("");
-                      setOccasione("");
-                      setBudget("");
-                    }}
-                    type="button"
-                  >
-                    {opzione}<span aria-hidden="true">{sesso === opzione ? "✓" : "↗"}</span>
-                  </button>
-                ))}
+                <button
+                  aria-pressed={sesso === "Donna"}
+                  className={`choice-button ${sesso === "Donna" ? "is-selected" : ""}`}
+                  onClick={() => {
+                    setSesso("Donna");
+                    setStile("");
+                    setOccasione("");
+                    setBudget("");
+                  }}
+                  type="button"
+                >
+                  Donna<span aria-hidden="true">{sesso === "Donna" ? "✓" : "↗"}</span>
+                </button>
               </div>
             </section>
 
@@ -134,7 +131,7 @@ export default function Home() {
               <section className="preference-step">
                 <div className="step-label"><span>03</span><h3>Per quale occasione?</h3></div>
                 <div className="option-row option-row-wrap">
-                  {OCCASIONI.map((opzione) => (
+                  {OCCASIONI.filter((opzione) => stile !== "Sportivo" || opzione !== "Cerimonia").map((opzione) => (
                     <button
                       aria-pressed={occasione === opzione}
                       className={`tag-button ${occasione === opzione ? "is-selected" : ""}`}

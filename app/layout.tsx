@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteFooter from "./components/site-footer";
 import SiteHeader from "./components/site-header";
+import Providers from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,9 +14,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html data-scroll-behavior="smooth" lang="it">
       <body>
-        <SiteHeader />
-        {children}
-        <SiteFooter />
+        <Providers>
+          <SiteHeader />
+          {children}
+          <SiteFooter />
+        </Providers>
       </body>
     </html>
   );

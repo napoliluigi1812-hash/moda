@@ -120,7 +120,6 @@ async function main() {
 
       for (const parte of partiPercorso.slice(0, -1)) {
         const parteMaiuscola = parte.replace(/[-_]/g, " ").toUpperCase();
-        if (parteMaiuscola.includes("UOMO")) sesso = "Uomo";
         if (parteMaiuscola.includes("DONNA")) sesso = "Donna";
         if (parteMaiuscola.includes("ELEGANTE")) stile = "Elegante";
         if (parteMaiuscola.includes("MINIMAL")) stile = "Minimal";

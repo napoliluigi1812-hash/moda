@@ -39,6 +39,11 @@ export default function OutfitPage() {
           <span>{capi.length} {capi.length === 1 ? "capo" : "capi"}</span>
           <strong>{formattaPrezzo(totale)}</strong>
           <Link href={linkReparto(REPARTI[0], {})}>Continua a scegliere <span aria-hidden="true">↗</span></Link>
+          {capi.length > 0 && (
+            <Link href={`/checkout?${new URLSearchParams(capi.map((capo) => ["capi", capo.id]))}`}>
+              Vai al checkout <span aria-hidden="true">↗</span>
+            </Link>
+          )}
         </div>
       </header>
 

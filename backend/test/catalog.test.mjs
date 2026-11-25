@@ -28,7 +28,7 @@ describe("catalogo SQLite", () => {
       );
       INSERT INTO capi VALUES
         (1, 'Top 01', 'Elegant', 'Donna', 'Body', 'Work,Ceremony', 49.99, '/capi/ELEGANTE/DONNA/BODY/top_01.jpg'),
-        (2, 'Giacca 01', 'Casual', 'Uomo', 'Giacche', 'Evening', 149.99, '/capi/CASUAL/UOMO/GIACCHE/giacca_01.jpg'),
+        (2, 'Giacca 01', 'Casual', 'Donna', 'Giacche', 'Evening', 149.99, '/capi/CASUAL/DONNA/GIACCHE/giacca_01.jpg'),
         (3, 'Abito 01', 'Elegant', 'Donna', 'Abiti', 'Evening', 89.99, '/capi/ELEGANTE/DONNA/ABITI/abito_01.jpg'),
         (4, 'Top Lavoro', 'Elegante', 'Donna', 'Body', 'Lavoro', 49.99, '/capi/ELEGANTE/DONNA/BODY/top_lavoro.jpg'),
         (5, 'Abito Serata', 'Elegante', 'Donna', 'Abiti', 'Serata', 89.99, '/capi/ELEGANTE/DONNA/ABITI/abito_serata.jpg'),
@@ -122,6 +122,75 @@ describe("catalogo SQLite", () => {
 
     assert.deepEqual(catalogo.capi.map((capo) => capo.id), ["3", "5"]);
     assert.deepEqual(catalogo.categorie, ["Abiti", "Giacche", "Top"]);
+  });
+
+  it("esclude Cerimonia solo dallo stile Sportivo", () => {
+    const policyDatabasePath = path.join(directory, "occasioni.db");
+    const db = new Database(policyDatabasePath);
+    db.exec(`
+      CREATE TABLE capi (
+        id INTEGER PRIMARY KEY,
+        nome TEXT NOT NULL,
+        stile TEXT,
+        sesso TEXT,
+        categoria TEXT,
+        occasione TEXT,
+        prezzo REAL,
+        immagine TEXT
+      );
+      INSERT INTO capi VALUES
+        (1, 'Sportivo Lavoro', 'Sporty', 'Donna', 'Top', 'Work', 49.99, '/sport/work.jpg'),
+        (2, 'Sportivo Serata', 'Sporty', 'Donna', 'Top', 'Evening', 49.99, '/sport/evening.jpg'),
+        (3, 'Sportivo Tempo libero', 'Sporty', 'Donna', 'Top', 'Leisure', 49.99, '/sport/leisure.jpg'),
+        (4, 'Sportivo Viaggio', 'Sporty', 'Donna', 'Top', 'Travel', 49.99, '/sport/travel.jpg'),
+        (5, 'Sportivo Cerimonia', 'Sporty', 'Donna', 'Top', 'Ceremony', 49.99, '/sport/ceremony.jpg'),
+        (9, 'Sportivo Lavoro Cerimonia', 'Sporty', 'Donna', 'Top', 'Work,Ceremony', 49.99, '/sport/work-ceremony.jpg'),
+        (6, 'Elegante Cerimonia', 'Elegant', 'Donna', 'Abiti', 'Ceremony', 89.99, '/elegant/ceremony.jpg'),
+        (7, 'Minimal Cerimonia', 'Minimal', 'Donna', 'Abiti', 'Ceremony', 89.99, '/minimal/ceremony.jpg'),
+        (8, 'Casual Cerimonia', 'Casual', 'Donna', 'Abiti', 'Ceremony', 89.99, '/casual/ceremony.jpg'),
+        (10, 'Capo non disponibile', 'Casual', 'Altro', 'Abiti', 'Work', 89.99, '/other/work.jpg');
+    `);
+    db.close();
+
+    assert.deepEqual(
+      getCapi({ sesso: "Donna", stile: "Sporty" }, policyDatabasePath)
+        .flatMap((capo) => capo.occasioni)
+        .filter((occasione, index, occasioni) => occasioni.indexOf(occasione) === index)
+        .sort(),
+      ["Evening", "Leisure", "Travel", "Work"],
+    );
+    assert.deepEqual(
+      getCapi({ sesso: "Donna", stile: "Sporty" }, policyDatabasePath).map((capo) => capo.id),
+      ["1", "2", "3", "4", "9"],
+    );
+    assert.deepEqual(
+      getCapi({ sesso: "Donna", stile: "Sporty", occasione: "Ceremony" }, policyDatabasePath),
+      [],
+    );
+    assert.deepEqual(
+      getCapi({ sesso: "Donna", stile: "Sporty" }, policyDatabasePath)
+        .find((capo) => capo.id === "9")?.occasioni,
+      ["Work"],
+    );
+    assert.deepEqual(
+      getCapi({ sesso: "Donna", stile: "Elegant", occasione: "Ceremony" }, policyDatabasePath)
+        .map((capo) => capo.id),
+      ["6"],
+    );
+    assert.deepEqual(
+      getCapi({ sesso: "Donna", stile: "Minimal", occasione: "Ceremony" }, policyDatabasePath)
+        .map((capo) => capo.id),
+      ["7"],
+    );
+    assert.deepEqual(
+      getCapi({ sesso: "Donna", stile: "Casual", occasione: "Ceremony" }, policyDatabasePath)
+        .map((capo) => capo.id),
+      ["8"],
+    );
+    assert.deepEqual(
+      getCapi({}, policyDatabasePath).map((capo) => capo.id),
+      ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    );
   });
 });
 

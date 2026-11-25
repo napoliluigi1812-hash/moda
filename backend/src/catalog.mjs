@@ -26,9 +26,19 @@ const occasionValues = {
 
 function matchesFilters(capo, filters) {
   const { sesso, stile, occasione, budget, categoria } = filters;
+  if (capo.sesso !== "Donna" && capo.sesso !== "Unisex") return false;
   if (sesso && capo.sesso !== sesso) return false;
   if (categoria && capo.categoria !== categoria) return false;
   if (stile && !capo.stili.includes(stile)) return false;
+  if (
+    stile === "Sporty" &&
+    (occasione === "Ceremony" ||
+      (!occasione &&
+        capo.occasioni.length > 0 &&
+        capo.occasioni.every((value) => value === "Ceremony")))
+  ) {
+    return false;
+  }
   if (occasione && !capo.occasioni.includes(occasione)) return false;
   if (budget && !budgetPriceRanges[budget](capo.prezzo)) return false;
   return true;
@@ -43,7 +53,7 @@ export function getCatalogo(
   try {
     const columns = db.prepare("PRAGMA table_info(capi)").all();
     const hasOccasione = columns.some((column) => column.name === "occasione");
-    const rows = db.prepare(`
+    const capi = db.prepare(`
       SELECT id, nome, stile, sesso, categoria, prezzo, immagine${hasOccasione ? ", occasione" : ""}
       FROM capi
     `)
@@ -67,11 +77,17 @@ export function getCatalogo(
     const filtersWithoutCategory = { ...filters };
     delete filtersWithoutCategory.categoria;
     const categorie = Array.from(
-      new Set(rows.filter((capo) => matchesFilters(capo, filtersWithoutCategory))
+      new Set(capi.filter((capo) => matchesFilters(capo, filtersWithoutCategory))
         .map((capo) => capo.categoria)),
     ).sort((first, second) => first.localeCompare(second, "it"));
     return {
-      capi: rows.filter((capo) => matchesFilters(capo, filters)),
+      capi: capi.filter((capo) => matchesFilters(capo, filters))
+        .map((capo) => filters.stile === "Sporty"
+          ? {
+              ...capo,
+              occasioni: capo.occasioni.filter((value) => value !== "Ceremony"),
+            }
+          : capo),
       categorie,
     };
   } finally {

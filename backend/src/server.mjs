@@ -20,8 +20,8 @@ function readFilters(searchParams) {
     filters[key] = normalizedValue;
   }
 
-  if (filters.sesso && !["Donna", "Uomo"].includes(filters.sesso)) {
-    return { error: 'Il filtro "sesso" deve essere "Donna" oppure "Uomo".' };
+  if (filters.sesso && filters.sesso !== "Donna") {
+    return { error: 'Il filtro "sesso" deve essere "Donna".' };
   }
   if (filters.budget && !Object.hasOwn({ basso: true, medio: true, alto: true }, filters.budget)) {
     return { error: 'Il filtro "budget" deve essere "basso", "medio" oppure "alto".' };
